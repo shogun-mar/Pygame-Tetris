@@ -14,8 +14,6 @@ game_background_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGTH))
 
 def gen_random_tetromino():
     shape = choice(['I', 'O', 'T', 'S', 'Z', 'J', 'L'])
-    shape = 'S'
-    print(f"Generating a {shape} tetromino")
     color = choice(['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'cyan'])
     cell_positions = []
     if shape == 'I':
@@ -45,10 +43,10 @@ def gen_random_tetromino():
         [cell_positions.append([origin_point[0] + i, origin_point[1]]) for i in range(3)]
         cell_positions.append([origin_point[0] + 2, origin_point[1] - 1])
         
-    
     return Tetromino(screen, color, cell_positions)
 
-current_tetromino = gen_random_tetromino()
+tetrominoes = [gen_random_tetromino() for _ in range(4)]
+current_tetromino = tetrominoes[0]
 
 def handle_keyboard_events(key):
     if key == pygame.K_a: current_tetromino.move_left()
@@ -64,14 +62,15 @@ def update_game():
     for cell_position in current_tetromino.cell_positions:
         column = cell_position[0]
         row = cell_position[1]
-        if row == GRID_HEIGHT - 1 or grid[row + 1][column] != 0: #If cells need to be converted
+        if row == GRID_HEIGHT - 1 or (row + 1 < len(grid) and grid[row + 1][column] != 0): #If cells need to be converted
             for cell_position in current_tetromino.cell_positions:
                 column = cell_position[0]
                 row = cell_position[1]
                 grid[row][column] = current_tetromino.color # Add cell to the grid
 
             # Create a new tetromino
-            current_tetromino = gen_random_tetromino()
+            tetrominoes.append(gen_random_tetromino())
+            current_tetromino = tetrominoes[0]
             break
 
     #Move tretramino down one cell
@@ -97,6 +96,30 @@ def draw_grid():
             if grid[row][column] != 0:
                 pygame.draw.rect(screen, grid[row][column], (column * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
     
+def draw_dialogue_menu():
+    # Offsets
+    tetramino_offset = [50, 0]
+    cell_offset = [0, 0]
+
+    # Draw tetraminoes on the dialogue menu, excluding the first element
+    for tetromino in tetrominoes[1:]:
+        tetramino_offset[1] += 100  # Increment vertical offset for each tetromino
+        cell_offset = [0, 0]  # Reset cell offset for each tetromino
+        for i in range(len(tetromino.cell_positions)):
+            current_column = tetromino.cell_positions[i][0]
+            current_row = tetromino.cell_positions[i][1]
+            if i > 0:
+                previous_column = tetromino.cell_positions[i-1][0]
+                previous_row = tetromino.cell_positions[i-1][1]
+                if current_column == previous_column + 1:
+                    cell_offset[0] += TILE_SIZE
+                if current_row == previous_row + 1:
+                    cell_offset[1] += TILE_SIZE
+
+            x = SCREEN_WIDTH + tetramino_offset[0] + cell_offset[0]
+            y = tetramino_offset[1] + cell_offset[1]
+            pygame.draw.rect(screen, tetromino.color, (x, y, TILE_SIZE, TILE_SIZE))
+
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -113,6 +136,7 @@ while True:
     screen.fill('darkgrey')
     screen.blit(game_background_surface, (0, 0))
     draw_grid() # Draw tetraminos on the grid and loose cells
+    draw_dialogue_menu()
 
     pygame.display.flip()
     clock.tick(MAX_FPS)
