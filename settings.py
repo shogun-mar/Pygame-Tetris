@@ -6,3 +6,4 @@ SCREEN_HEIGTH = GRID_HEIGHT * TILE_SIZE # Height of the screen in pixels
 MAX_FPS = 5 # Maximum number of frames per second
 
 DIALOGUE_MENU_WIDTH = 200 # Width of the dialogue menu in pixels
+DEFEAT_ROW_NUM = 2 #If the loose cells reach this row, the game is over
