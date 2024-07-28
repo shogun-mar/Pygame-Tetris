@@ -11,6 +11,7 @@ clock = pygame.time.Clock()
 
 grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)] # 0 means empty cell, color name means filled cell with that color
 game_background_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGTH))
+accept_input = True
 
 def gen_random_tetromino():
     shape = choice(['I', 'O', 'T', 'S', 'Z', 'J', 'L'])
@@ -24,12 +25,12 @@ def gen_random_tetromino():
         [cell_positions.append([origin_point[0] + i, origin_point[1] + j]) for i in range(2) for j in range(2)]
     elif shape == 'T':
         origin_point = (randint(0, GRID_WIDTH - 3), 1)
-        [cell_positions.append([origin_point[0] + i, origin_point[1] + j]) for i in range(3) for j in range(2)]
-        cell_positions.append([origin_point[0] + 1, origin_point[1] + 2])
+        [cell_positions.append([origin_point[0] + i, origin_point[1]]) for i in range(3)]
+        cell_positions.append([origin_point[0] + 1, origin_point[1] + 1])
     elif shape == 'S':
         origin_point = (randint(0, GRID_WIDTH - 3), 1)
-        [cell_positions.append([origin_point[0] + i, origin_point[1] + 1]) for i in range(2)]
-        [cell_positions.append([origin_point[0] + i + 1, origin_point[1]]) for i in range(2)]
+        [cell_positions.append([origin_point[0] + i, origin_point[1]]) for i in range(3)]
+        cell_positions.append([origin_point[0] + 1, origin_point[1] + 1])
     elif shape == 'Z':
         origin_point = (randint(0, GRID_WIDTH - 3), 1)
         [cell_positions.append([origin_point[0] + i, origin_point[1] - 1]) for i in range(2)]
@@ -49,32 +50,41 @@ tetrominoes = [gen_random_tetromino() for _ in range(4)]
 current_tetromino = tetrominoes[0]
 
 def handle_keyboard_events(key):
-    if key == pygame.K_a: current_tetromino.move_left()
-    elif key == pygame.K_d: current_tetromino.move_right()
-    elif key == pygame.K_q: current_tetromino.rotate_left()
-    elif key == pygame.K_e: current_tetromino.rotate_right()
-    #elif key == pygame.K_s: current_tetromino.move_down()
+    if accept_input:
+        if key == pygame.K_a: current_tetromino.move_left()
+        elif key == pygame.K_d: current_tetromino.move_right()
+        elif key == pygame.K_q: current_tetromino.rotate_left()
+        elif key == pygame.K_e: current_tetromino.rotate_right()
+        #elif key == pygame.K_s: current_tetromino.move_down()
 
 def update_game():
-    global current_tetromino
+    global current_tetromino, accept_input
 
     # Check if tetromino has reached loose cells
+    should_convert = False
     for cell_position in current_tetromino.cell_positions:
         column = cell_position[0]
         row = cell_position[1]
-        if row == GRID_HEIGHT - 1 or (row + 1 < len(grid) and grid[row + 1][column] != 0): #If cells need to be converted
-            for cell_position in current_tetromino.cell_positions:
-                column = cell_position[0]
-                row = cell_position[1]
-                grid[row][column] = current_tetromino.color # Add cell to the grid
-
-            # Create a new tetromino
-            tetrominoes.append(gen_random_tetromino())
-            current_tetromino = tetrominoes[0]
+        if row == GRID_HEIGHT - 1 or (row + 1 < len(grid) and grid[row + 1][column] != 0):  # If cells need to be converted
+            should_convert = True
             break
 
-    #Move tretramino down one cell
-    current_tetromino.move_down()
+    if should_convert:
+        accept_input = False
+        for cell_position in current_tetromino.cell_positions:
+            column = cell_position[0]
+            row = cell_position[1]
+            if 0 <= row < GRID_HEIGHT and 0 <= column < GRID_WIDTH:  # Ensure indices are within bounds
+                grid[row][column] = current_tetromino.color  # Add cell to the grid
+
+        # Create a new tetromino
+        tetrominoes.append(gen_random_tetromino())
+        current_tetromino = tetrominoes[0]
+        tetrominoes.pop(0)
+        accept_input = True
+    else:
+        # Move tetromino down one cell
+        current_tetromino.move_down()
 
 def check_defeat():
     for column in range(GRID_WIDTH):
@@ -136,7 +146,7 @@ while True:
     screen.fill('darkgrey')
     screen.blit(game_background_surface, (0, 0))
     draw_grid() # Draw tetraminos on the grid and loose cells
-    draw_dialogue_menu()
+    #draw_dialogue_menu()
 
     pygame.display.flip()
     clock.tick(MAX_FPS)
