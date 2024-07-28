@@ -26,7 +26,7 @@ def update_game():
     for cell_position in current_tetromino.cell_positions:
         column = cell_position[0]
         row = cell_position[1]
-        if row == GRID_HEIGHT - 1 or grid[row + 1][column] != 0:
+        if row == GRID_HEIGHT - 1 or grid[column + 1][row] != 0:
             #Add tetramino to the grid
             for cell_position in current_tetromino.cell_positions:
                 column = cell_position[0]
