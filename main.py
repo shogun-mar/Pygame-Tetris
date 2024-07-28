@@ -9,7 +9,7 @@ pygame.display.set_caption('Tetris')
 clock = pygame.time.Clock()
 
 grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)] # 0 means empty cell, color name means filled cell with that color
-current_tetromino = Tetromino(screen, [[0, 0], [1, 0], [2, 0], [3, 0]], 'red')
+current_tetromino = Tetromino(screen, color='red', cell_positions=[[2, 2]])
 
 game_background_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGTH))
 
@@ -22,25 +22,25 @@ def handle_keyboard_events(key):
 def update_game():
     global current_tetromino
 
-    #Check if tetramino has reached loose cells
+    # Check if tetromino has reached loose cells
     for cell_position in current_tetromino.cell_positions:
         column = cell_position[0]
         row = cell_position[1]
-        if row == GRID_HEIGHT - 1 or grid[column + 1][row] != 0:
-            #Add tetramino to the grid
+        print(f"column: {column}, row: {row}")
+        if row == GRID_HEIGHT - 1 or grid[row][column + 1] != 0:
+            # Add tetromino to the grid
             for cell_position in current_tetromino.cell_positions:
                 column = cell_position[0]
                 row = cell_position[1]
-                grid[row][column] = current_tetromino.color
+                print(f"tetramino column: {column}, row: {row}")
+                grid[column][row] = current_tetromino.color
 
-            #Create a new tetramino
-            current_tetromino = Tetromino(screen, [[0, 0], [1, 0], [2, 0], [3, 0]], 'red')
+            # Create a new tetromino
+            current_tetromino = Tetromino(screen, color='red', cell_positions=[[2, 2]])
             break
 
     #Move tretramino down one cell
     current_tetromino.move_down()
-
-
 
 def draw_grid():
     #Draw tetramoino's cells
