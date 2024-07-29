@@ -1,21 +1,30 @@
 import pygame
-from settings import TILE_SIZE, GRID_WIDTH
+from settings import TILE_SIZE, GRID_WIDTH, GRID_HEIGHT
 
 class Tetromino:
-    def __init__(self, screen, color, cell_positions):
+    def __init__(self, screen, color, cell_positions, highest_loose_cells_row):
         self.screen = screen
         self.color = color
         self.cell_positions = cell_positions
+        self.highest_loose_cells_row = highest_loose_cells_row
 
     def move_left(self):
-        leftmost_column = min(cell[0] for cell in self.cell_positions)
-        if leftmost_column > 0:
+        if self.can_move_left():
             self.cell_positions = [[cell[0] - 1, cell[1]] for cell in self.cell_positions]
-    
+ 
+    def can_move_left(self):
+        lowermost_cell_row = max(cell[1] for cell in self.cell_positions)
+        leftmost_cell_column = min(cell[0] for cell in self.cell_positions)
+        return (lowermost_cell_row > 0 or lowermost_cell_row + 1 != self.highest_loose_cells_row) and leftmost_cell_column - 1 >= 0
+
     def move_right(self):
-        rightmost_column = max(cell[0] for cell in self.cell_positions)
-        if rightmost_column < GRID_WIDTH - 1:
+        if self.can_move_right():
             self.cell_positions = [[cell[0] + 1, cell[1]] for cell in self.cell_positions]
+
+    def can_move_right(self):
+        lowermost_cell_row = max(cell[1] for cell in self.cell_positions)
+        rightmost_cell_column = max(cell[0] for cell in self.cell_positions)
+        return (lowermost_cell_row > 0 or lowermost_cell_row + 1 != self.highest_loose_cells_row) and rightmost_cell_column + 1 < GRID_WIDTH
 
     def move_down(self):
         self.cell_positions = [[cell[0], cell[1] + 1] for cell in self.cell_positions]
@@ -27,10 +36,10 @@ class Tetromino:
             pygame.draw.rect(self.screen, self.color, (column * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
     def rotate_left(self):
-        self._rotate(reverse_columns=True)
+        if self.can_move_left(): self._rotate(reverse_columns=True)
 
     def rotate_right(self):
-        self._rotate(reverse_columns=False)
+        if self.can_move_right(): self._rotate(reverse_columns=False)
 
     def _rotate(self, reverse_columns):
         # Calculate the bounding box of the tetromino

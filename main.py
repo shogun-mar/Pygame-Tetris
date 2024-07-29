@@ -11,10 +11,11 @@ clock = pygame.time.Clock()
 
 grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)] # 0 means empty cell, color name means filled cell with that color
 game_background_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGTH))
-accept_input = True
+highest_loose_cells_row = 0
 
 def gen_random_tetromino():
     shape = choice(['I', 'O', 'T', 'S', 'Z', 'J', 'L'])
+    shape = 'I'
     color = choice(['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'cyan'])
     cell_positions = []
     if shape == 'I':
@@ -44,21 +45,20 @@ def gen_random_tetromino():
         [cell_positions.append([origin_point[0] + i, origin_point[1]]) for i in range(3)]
         cell_positions.append([origin_point[0] + 2, origin_point[1] - 1])
         
-    return Tetromino(screen, color, cell_positions)
+    return Tetromino(screen, color, cell_positions, highest_loose_cells_row)
 
 tetrominoes = [gen_random_tetromino() for _ in range(4)]
 current_tetromino = tetrominoes[0]
 
 def handle_keyboard_events(key):
-    if accept_input:
-        if key == pygame.K_a: current_tetromino.move_left()
-        elif key == pygame.K_d: current_tetromino.move_right()
-        elif key == pygame.K_q: current_tetromino.rotate_left()
-        elif key == pygame.K_e: current_tetromino.rotate_right()
-        #elif key == pygame.K_s: current_tetromino.move_down()
+    if key == pygame.K_a: current_tetromino.move_left()
+    elif key == pygame.K_d: current_tetromino.move_right()
+    elif key == pygame.K_q: current_tetromino.rotate_left()
+    elif key == pygame.K_e: current_tetromino.rotate_right()
+    #elif key == pygame.K_s: current_tetromino.move_down()
 
 def update_game():
-    global current_tetromino, accept_input
+    global current_tetromino, accept_input, highest_loose_cells_row
 
     # Check if tetromino has reached loose cells
     should_convert = False
@@ -70,21 +70,31 @@ def update_game():
             break
 
     if should_convert:
-        accept_input = False
         for cell_position in current_tetromino.cell_positions:
             column = cell_position[0]
             row = cell_position[1]
             if 0 <= row < GRID_HEIGHT and 0 <= column < GRID_WIDTH:  # Ensure indices are within bounds
                 grid[row][column] = current_tetromino.color  # Add cell to the grid
 
-        # Create a new tetromino
+        # Tetromino has reached the bottom, generate a new tetromino append it to the list and set it as the current tetromino then remove the first element
         tetrominoes.append(gen_random_tetromino())
         current_tetromino = tetrominoes[0]
         tetrominoes.pop(0)
-        accept_input = True
     else:
         # Move tetromino down one cell
         current_tetromino.move_down()
+    
+    # Check if there are any full rows
+    remove_row = True
+    for i in range(GRID_HEIGHT):
+        for cell in grid[i]: #For each cell in the row
+            if cell == 0:
+                remove_row = False
+                break
+        if remove_row: 
+            print('Row', i, 'is full')
+            grid[i] = [0] * GRID_WIDTH #The right expression generates a list filled with 0s with length equal to GRID_WIDTH
+            highest_loose_cells_row = i #Update the highest loose cells row
 
 def check_defeat():
     for column in range(GRID_WIDTH):
