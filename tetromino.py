@@ -16,7 +16,7 @@ class Tetromino:
     def can_move_left(self):
         leftmost_cell_column, leftmost_cell_row = min(self.cell_positions, key=lambda cell: cell[0])
         desired_leftmost_column = min(leftmost_cell_column - 1, 0)
-        return not(self.is_right_above_loose_cells_or_bottom()) and self.grid[leftmost_cell_row][desired_leftmost_column] == 0
+        return not(self.is_right_above_loose_cells_or_bottom()) and self.grid[leftmost_cell_row][desired_leftmost_column] == 0 and desired_leftmost_column >= 0
         
     def move_right(self):
         if self.can_move_right():
@@ -24,8 +24,8 @@ class Tetromino:
 
     def can_move_right(self):
         rightmost_cell_column, rightmost_cell_row = max(self.cell_positions, key=lambda cell: cell[0])
-        desired_rightmost_column = min(rightmost_cell_column + 1, GRID_WIDTH - 1)
-        return not(self.is_right_above_loose_cells_or_bottom()) and self.grid[rightmost_cell_row][desired_rightmost_column] == 0
+        desired_rightmost_column = rightmost_cell_column + 1
+        return not(self.is_right_above_loose_cells_or_bottom()) and self.grid[rightmost_cell_row][min(rightmost_cell_column + 1, GRID_WIDTH - 1)] == 0 and desired_rightmost_column < GRID_WIDTH
 
     def is_right_above_loose_cells_or_bottom(self):
         lowermost_cell_row = max(cell[1] for cell in self.cell_positions)

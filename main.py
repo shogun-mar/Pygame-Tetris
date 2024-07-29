@@ -9,7 +9,7 @@ screen = pygame.display.set_mode((SCREEN_WIDTH + DIALOGUE_MENU_WIDTH, SCREEN_HEI
 pygame.display.set_caption('Tetris')
 clock = pygame.time.Clock()
 
-grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)] # 0 means empty cell, color name means filled cell with that color
+grid = [[0] * GRID_WIDTH for _ in range(GRID_HEIGHT)] # 0 means empty cell, color name means filled cell with that color
 game_background_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGTH))
 highest_loose_cells_row = 0
 
@@ -65,37 +65,37 @@ def update_game():
     for cell_position in current_tetromino.cell_positions:
         column = cell_position[0]
         row = cell_position[1]
-        if row == GRID_HEIGHT - 1 or (row + 1 < GRID_HEIGHT and grid[row + 1][column] != 0):  # If cells need to be converted
-            should_convert = True
-            break
+        try:
+            if row == GRID_HEIGHT - 1 or (row + 1 < GRID_HEIGHT and 0 <= column < GRID_WIDTH and grid[row + 1][column] != 0):  # If cells need to be converted
+                should_convert = True
+                break
+        except Exception:
+            print(f"row {row}, column {column}")
 
     if should_convert:
+        print('Converting tetromino to loose cells')
         for cell_position in current_tetromino.cell_positions:
+            print(f"Converting cell {cell_position}")
             column = cell_position[0]
             row = cell_position[1]
             if 0 <= row < GRID_HEIGHT and 0 <= column < GRID_WIDTH:  # Ensure indices are within bounds
                 grid[row][column] = current_tetromino.color  # Add cell to the grid
+                print(f"Converted cell {cell_position}")
+                highest_loose_cells_row = max(highest_loose_cells_row, row)  # Update the highest row with loose cells
 
-        # Tetromino has reached the bottom, generate a new tetromino append it to the list and set it as the current tetromino then remove the first element
+        # Generate a new tetromino and set it as the current tetromino
         tetrominoes.append(gen_random_tetromino())
         current_tetromino = tetrominoes[0]
         tetrominoes.pop(0)
     else:
         # Move tetromino down one cell
-        #current_tetromino.move_down()
-        ...
+        current_tetromino.move_down()
 
     # Check if there are any full rows
-    remove_row = True
-    for i in range(GRID_HEIGHT):
-        for cell in grid[i]: #For each cell in the row
-            if cell == 0:
-                remove_row = False
-                break
-        if remove_row: 
-            print('Row', i, 'is full')
-            grid[i] = [0] * GRID_WIDTH #The right expression generates a list filled with 0s with length equal to GRID_WIDTH
-            highest_loose_cells_row = i #Update the highest loose cells row
+    for row in range(GRID_HEIGHT):
+        if all(cell != 0 for cell in grid[row]):
+            print(f"Clearing full row {row}")
+            grid[row] = [0] * (GRID_WIDTH - 1)
 
 def check_defeat():
     for column in range(GRID_WIDTH):
@@ -114,8 +114,12 @@ def draw_grid():
     #Draw loose cells
     for row in range(GRID_HEIGHT):
         for column in range(GRID_WIDTH):
-            if grid[row][column] != 0:
-                pygame.draw.rect(screen, grid[row][column], (column * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+            try:
+                if column != 11:
+                    if grid[row][column] != 0:
+                        pygame.draw.rect(screen, grid[row][column], (column * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+            except Exception:
+                print(f"column {column}")
     
 def draw_dialogue_menu():
     # Offsets
