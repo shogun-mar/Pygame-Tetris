@@ -15,7 +15,6 @@ highest_loose_cells_row = 0
 
 def gen_random_tetromino():
     shape = choice(['I', 'O', 'T', 'S', 'Z', 'J', 'L'])
-    shape = 'I'
     color = choice(['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'cyan'])
     cell_positions = []
     if shape == 'I':
@@ -70,32 +69,43 @@ def update_game():
                 should_convert = True
                 break
         except Exception:
-            print(f"row {row}, column {column}")
+            print("err")
 
     if should_convert:
-        print('Converting tetromino to loose cells')
+        i = 0
         for cell_position in current_tetromino.cell_positions:
-            print(f"Converting cell {cell_position}")
             column = cell_position[0]
             row = cell_position[1]
-            if 0 <= row < GRID_HEIGHT and 0 <= column < GRID_WIDTH:  # Ensure indices are within bounds
+            try:
                 grid[row][column] = current_tetromino.color  # Add cell to the grid
-                print(f"Converted cell {cell_position}")
-                highest_loose_cells_row = max(highest_loose_cells_row, row)  # Update the highest row with loose cells
+            except IndexError:
+                print("err")
+            highest_loose_cells_row = max(highest_loose_cells_row, row)  # Update the highest row with loose cells
+            i += 1
 
         # Generate a new tetromino and set it as the current tetromino
-        tetrominoes.append(gen_random_tetromino())
-        current_tetromino = tetrominoes[0]
+        current_tetromino = tetrominoes[1]
         tetrominoes.pop(0)
+        tetrominoes.append(gen_random_tetromino())
+        
     else:
         # Move tetromino down one cell
         current_tetromino.move_down()
 
-    # Check if there are any full rows
+    # Check if there are any full rows to clear
     for row in range(GRID_HEIGHT):
         if all(cell != 0 for cell in grid[row]):
-            print(f"Clearing full row {row}")
             grid[row] = [0] * (GRID_WIDTH - 1)
+        
+            # Move all rows above the cleared row one cell down
+            for i in range(GRID_WIDTH):
+                if grid[row - 1][i] != 0:
+                    try:
+                        grid[row][i] = grid[row - 1][i]
+                    except:
+                        print("err")
+                    grid[row - 1][i] = 0
+                
 
 def check_defeat():
     for column in range(GRID_WIDTH):
