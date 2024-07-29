@@ -45,7 +45,7 @@ def gen_random_tetromino():
         [cell_positions.append([origin_point[0] + i, origin_point[1]]) for i in range(3)]
         cell_positions.append([origin_point[0] + 2, origin_point[1] - 1])
         
-    return Tetromino(screen, color, cell_positions, highest_loose_cells_row)
+    return Tetromino(screen, color, cell_positions, grid, highest_loose_cells_row)
 
 tetrominoes = [gen_random_tetromino() for _ in range(4)]
 current_tetromino = tetrominoes[0]
@@ -55,7 +55,7 @@ def handle_keyboard_events(key):
     elif key == pygame.K_d: current_tetromino.move_right()
     elif key == pygame.K_q: current_tetromino.rotate_left()
     elif key == pygame.K_e: current_tetromino.rotate_right()
-    #elif key == pygame.K_s: current_tetromino.move_down()
+    elif key == pygame.K_s: current_tetromino.move_down()
 
 def update_game():
     global current_tetromino, accept_input, highest_loose_cells_row
@@ -65,7 +65,7 @@ def update_game():
     for cell_position in current_tetromino.cell_positions:
         column = cell_position[0]
         row = cell_position[1]
-        if row == GRID_HEIGHT - 1 or (row + 1 < len(grid) and grid[row + 1][column] != 0):  # If cells need to be converted
+        if row == GRID_HEIGHT - 1 or (row + 1 < GRID_HEIGHT and grid[row + 1][column] != 0):  # If cells need to be converted
             should_convert = True
             break
 
@@ -82,8 +82,9 @@ def update_game():
         tetrominoes.pop(0)
     else:
         # Move tetromino down one cell
-        current_tetromino.move_down()
-    
+        #current_tetromino.move_down()
+        ...
+
     # Check if there are any full rows
     remove_row = True
     for i in range(GRID_HEIGHT):

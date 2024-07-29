@@ -2,10 +2,11 @@ import pygame
 from settings import TILE_SIZE, GRID_WIDTH, GRID_HEIGHT
 
 class Tetromino:
-    def __init__(self, screen, color, cell_positions, highest_loose_cells_row):
+    def __init__(self, screen, color, cell_positions, grid, highest_loose_cells_row):
         self.screen = screen
         self.color = color
         self.cell_positions = cell_positions
+        self.grid = grid
         self.highest_loose_cells_row = highest_loose_cells_row
 
     def move_left(self):
@@ -13,18 +14,22 @@ class Tetromino:
             self.cell_positions = [[cell[0] - 1, cell[1]] for cell in self.cell_positions]
  
     def can_move_left(self):
-        lowermost_cell_row = max(cell[1] for cell in self.cell_positions)
-        leftmost_cell_column = min(cell[0] for cell in self.cell_positions)
-        return (lowermost_cell_row > 0 or lowermost_cell_row + 1 != self.highest_loose_cells_row) and leftmost_cell_column - 1 >= 0
-
+        leftmost_cell_column, leftmost_cell_row = min(self.cell_positions, key=lambda cell: cell[0])
+        desired_leftmost_column = min(leftmost_cell_column - 1, 0)
+        return not(self.is_right_above_loose_cells_or_bottom()) and self.grid[leftmost_cell_row][desired_leftmost_column] == 0
+        
     def move_right(self):
         if self.can_move_right():
             self.cell_positions = [[cell[0] + 1, cell[1]] for cell in self.cell_positions]
 
     def can_move_right(self):
+        rightmost_cell_column, rightmost_cell_row = max(self.cell_positions, key=lambda cell: cell[0])
+        desired_rightmost_column = min(rightmost_cell_column + 1, GRID_WIDTH - 1)
+        return not(self.is_right_above_loose_cells_or_bottom()) and self.grid[rightmost_cell_row][desired_rightmost_column] == 0
+
+    def is_right_above_loose_cells_or_bottom(self):
         lowermost_cell_row = max(cell[1] for cell in self.cell_positions)
-        rightmost_cell_column = max(cell[0] for cell in self.cell_positions)
-        return (lowermost_cell_row > 0 or lowermost_cell_row + 1 != self.highest_loose_cells_row) and rightmost_cell_column + 1 < GRID_WIDTH
+        return (lowermost_cell_row == GRID_HEIGHT or lowermost_cell_row + 1 == self.highest_loose_cells_row)
 
     def move_down(self):
         self.cell_positions = [[cell[0], cell[1] + 1] for cell in self.cell_positions]
